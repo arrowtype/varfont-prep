@@ -128,6 +128,24 @@ for fontFile in os.listdir(newFolderPath):
 
 print(glyphLists)
 
+commonGlyphs = set(glyphLists[0]).intersection(*glyphLists[1:])
+print(commonGlyphs)
+
+
+### NOT YET WORKING
+for fontFile in os.listdir(newFolderPath):
+    f = OpenFont(fullFontPath, showUI=False)
+    for g in f:
+        print(g.name)
+        if g.name in f.keys():
+            if g.name not in commonGlyphs:
+                f.removeGlyph(g.name)
+                print(g.name + " removed from " + f.info.styleName)
+
+######################################### 
+############# write report ##############
+#########################################
+
 reportOutput = open(newFolderPath + "/" + 'varfontprep-report.txt','w')
 reportOutput.write(now.strftime("%H:%M:%S; %d %B, %Y\n\n"))
 reportOutput.write("*******************\n")
