@@ -2,20 +2,14 @@
 
 from vanilla.dialogs import *
 import os
+import shutil
 import datetime
 
-now = datetime.datetime.now()
-# from mojo.UI import AskYesNoCancel
+
 
 # take in multiple fonts
-    # give user the finder UI to select multiple fonts
-    # or allow all open fonts
-help(getFile)
 inputFonts = getFile("select masters for var font", allowsMultipleSelection=True, fileTypes=["ufo"])
 
-# print(inputFonts)
-
-# help(OpenFont)
 
 def checkIfSameFamilyName(inputFonts):
     fontFamilyNames = []
@@ -33,21 +27,16 @@ def checkIfSameFamilyName(inputFonts):
         errorMsg = "The input UFOs have different font family names: " + str(set(fontFamilyNames))
         return errorMsg
 
-
-# def uniqueFolderPath(path, number):
-#     if os.path.exists(path):
-#         number += 1
-#         uniquePath += "-" + str(number)
-#         uniqueFolderPath(uniquePath, number)
-#     else:
-#         print(path)
-#         print(type(path))
-#         return path # why doesn't this return the string??
-
+def copyFonts(newFolderPath, inputFonts):
+    for fontPath in inputFonts:
+        head, tail = os.path.split(fontPath)
+        
+        # copy UFO into newFolderPath
+        shutil.copytree(fontPath, newFolderPath + "/varprep-" + tail)
 
 def duplicateFontsToFolder(inputFonts):
     
-
+    # check that selected fonts have same family name
     if checkIfSameFamilyName(inputFonts)[0] == True:
         
         # get family name
@@ -67,11 +56,18 @@ def duplicateFontsToFolder(inputFonts):
 
         if not os.path.exists(newFolderPath):
             os.mkdir(newFolderPath)
+            
+            copyFonts(newFolderPath, inputFonts)
         else:
-            newFolderPath += "-" now.strftime("%Y_%m_%d-%H_%M_%S")
+            # add current date & time to folder path if the base name is already taken
+            now = datetime.datetime.now()
+            newFolderPath += "-" + now.strftime("%Y_%m_%d-%H_%M_%S")
             os.mkdir(newFolderPath)
+            
+            copyFonts(newFolderPath, inputFonts)
+            
 
-    
+    # if font family names are different, print the returned error
     else:
         print(checkIfSameFamilyName(inputFonts))
 
