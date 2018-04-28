@@ -2,6 +2,9 @@
 
 from vanilla.dialogs import *
 import os
+import datetime
+
+now = datetime.datetime.now()
 # from mojo.UI import AskYesNoCancel
 
 # take in multiple fonts
@@ -30,27 +33,44 @@ def checkIfSameFamilyName(inputFonts):
         errorMsg = "The input UFOs have different font family names: " + str(set(fontFamilyNames))
         return errorMsg
 
-# print(checkIfSameFamilyName(inputFonts))
+
+# def uniqueFolderPath(path, number):
+#     if os.path.exists(path):
+#         number += 1
+#         uniquePath += "-" + str(number)
+#         uniqueFolderPath(uniquePath, number)
+#     else:
+#         print(path)
+#         print(type(path))
+#         return path # why doesn't this return the string??
+
 
 def duplicateFontsToFolder(inputFonts):
     
 
     if checkIfSameFamilyName(inputFonts)[0] == True:
+        
+        # get family name
         familyName = checkIfSameFamilyName(inputFonts)[1]
+        
+        # make new folder name with font family name and "varfontprep" label
         newFolderName = familyName.replace(" ","_").lower() + "-varfontprep"
         
-        print(newFolderName)
+        # get path of first input font
         path = inputFonts[0]
-        print(path)
-       
         
-
+        # get head of font path
         head, tail = os.path.split(path)
-        print(path)
-        print(head)
-        print(tail)
-        
-         os.mkdir(head/newFolderName)
+
+        # make new folder path
+        newFolderPath = head + "/" + newFolderName
+
+        if not os.path.exists(newFolderPath):
+            os.mkdir(newFolderPath)
+        else:
+            newFolderPath += "-" now.strftime("%Y_%m_%d-%H_%M_%S")
+            os.mkdir(newFolderPath)
+
     
     else:
         print(checkIfSameFamilyName(inputFonts))
