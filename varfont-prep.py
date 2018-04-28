@@ -5,6 +5,12 @@ import os
 import shutil
 import datetime
 
+report = """
+Var Prep Report:
+    
+"""
+now = datetime.datetime.now()
+
 # take in multiple fonts
 inputFonts = getFile("select masters for var font", allowsMultipleSelection=True, fileTypes=["ufo"])
 
@@ -17,6 +23,7 @@ inputFonts = getFile("select masters for var font", allowsMultipleSelection=True
 
 def checkIfSameFamilyName(inputFonts):
     fontFamilyNames = []
+    global report
 
     for fontPath in inputFonts:
         f = OpenFont(fontPath, showUI=False)
@@ -29,7 +36,11 @@ def checkIfSameFamilyName(inputFonts):
         return sameName, fontFamilyNames[0]
     else:
         errorMsg = "The input UFOs have different font family names: " + str(set(fontFamilyNames))
-        generateReport(inputFonts, errorMsg)
+        # generateReport(inputFonts, errorMsg)
+
+        report += errorMsg + "\n"
+        
+        return False, fontFamilyNames[0]
         # return errorMsg
         
 
@@ -43,10 +54,11 @@ def copyFonts(inputFonts, newFolderPath):
 def makeVarFontPrepFolder(inputFonts):
     
     # # check that selected fonts have same family name
-    # if checkIfSameFamilyName(inputFonts)[0] == True:
-        
-    # get family name
-    familyName = checkIfSameFamilyName(inputFonts)[1]
+    if checkIfSameFamilyName(inputFonts)[0] == True:
+        # get family name
+        familyName = checkIfSameFamilyName(inputFonts)[1]
+    else:
+        familyName = "error"
     
     # make new folder name with font family name and "varfontprep" label
     newFolderName = familyName.replace(" ","_").lower() + "-varfontprep"
@@ -115,7 +127,12 @@ for fontFile in os.listdir(newFolderPath):
     glyphLists.append(glyphs)
 
 print(glyphLists)
-    
+
+reportOutput = open(newFolderPath + "/" + 'varfontprep-report.txt','w')
+reportOutput.write(now.strftime("%H:%M:%S; %d %B, %Y\n\n"))
+reportOutput.write("*******************\n")
+reportOutput.write(report)
+reportOutput.close()
 
 
 
