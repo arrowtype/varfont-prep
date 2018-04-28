@@ -153,12 +153,28 @@ for fontFile in os.listdir(newFolderPath):
     f.close()
 
 
-######################################### 
+############################################################ 
 ############# TO DO: check glyphs for compatibility and delete non-compatible glyphs  ##############
+########################################################### 
+
+# loop through glyphs and check compatibility
+# if a glyph isn't compatible, add it to a non-compatible list
+# add to the report that it's not compatible, and add a point + contour table to the report
+# 
+# for each font, remove all the glyphs in the non-compatible list 
+
+#########################################################  ################ 
+############# TO DO?: include designspace file handling? ##############
+######################################################### ################ 
+
+# allow .designspace file extension to be selected
+
+# if a file is UFO, do the UFO stuff
+# if a file is designspace, move to new folder, with filenames updated to include varfontprep 
+    # (if you want to add those to names)
+    # does adding stuff to the filename matter?
+
 #########################################
-
-
-######################################### 
 ############# write report ##############
 #########################################
 
