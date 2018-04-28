@@ -1,7 +1,8 @@
 ### varfont prep
 
 from vanilla.dialogs import *
-from mojo.UI import AskYesNoCancel
+import os
+# from mojo.UI import AskYesNoCancel
 
 # take in multiple fonts
     # give user the finder UI to select multiple fonts
@@ -9,7 +10,7 @@ from mojo.UI import AskYesNoCancel
 help(getFile)
 inputFonts = getFile("select masters for var font", allowsMultipleSelection=True, fileTypes=["ufo"])
 
-print(inputFonts)
+# print(inputFonts)
 
 # help(OpenFont)
 
@@ -21,9 +22,40 @@ def checkIfSameFamilyName(inputFonts):
         familyName = f.info.familyName
         fontFamilyNames.append(familyName)
         
-    return all(x==fontFamilyNames[0] for x in fontFamilyNames)
+    sameName = all(x==fontFamilyNames[0] for x in fontFamilyNames)
+    
+    if sameName == True:
+        return sameName, fontFamilyNames[0]
+    else:
+        errorMsg = "The input UFOs have different font family names: " + str(set(fontFamilyNames))
+        return errorMsg
 
-print(checkIfSameFamilyName(inputFonts))
+# print(checkIfSameFamilyName(inputFonts))
+
+def duplicateFontsToFolder(inputFonts):
+    
+
+    if checkIfSameFamilyName(inputFonts)[0] == True:
+        familyName = checkIfSameFamilyName(inputFonts)[1]
+        newFolderName = familyName.replace(" ","_").lower() + "-varfontprep"
+        
+        print(newFolderName)
+        path = inputFonts[0]
+        print(path)
+       
+        
+
+        head, tail = os.path.split(path)
+        print(path)
+        print(head)
+        print(tail)
+        
+         os.mkdir(head/newFolderName)
+    
+    else:
+        print(checkIfSameFamilyName(inputFonts))
+
+duplicateFontsToFolder(inputFonts)
 
 # duplicate these fonts, deleting all glyphs which can not be interpolated
 
