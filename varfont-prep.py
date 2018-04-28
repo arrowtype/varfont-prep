@@ -11,6 +11,20 @@ inputFonts = getFile("select masters for var font", allowsMultipleSelection=True
 
 print(inputFonts)
 
+# help(OpenFont)
+
+def checkIfSameFamilyName(inputFonts):
+    fontFamilyNames = []
+
+    for fontPath in inputFonts:
+        f = OpenFont(fontPath, showUI=False)
+        familyName = f.info.familyName
+        fontFamilyNames.append(familyName)
+        
+    return all(x==fontFamilyNames[0] for x in fontFamilyNames)
+
+print(checkIfSameFamilyName(inputFonts))
+
 # duplicate these fonts, deleting all glyphs which can not be interpolated
 
     # check that font info matches
