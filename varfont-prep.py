@@ -133,7 +133,7 @@ commonGlyphs = set(glyphLists[0]).intersection(*glyphLists[1:])
 print(commonGlyphs)
 
 
-### NOT YET WORKING –– why are glyphs not being removed?
+
 for fontFile in os.listdir(newFolderPath):
     fullFontPath = newFolderPath + "/" + fontFile
     f = OpenFont(fullFontPath, showUI=False)
@@ -148,6 +148,15 @@ for fontFile in os.listdir(newFolderPath):
             print(g.name + " removed from " + f.info.styleName)
             
             report += " - " + g.name + "\n"
+        
+    f.save()
+    f.close()
+
+
+######################################### 
+############# TO DO: check glyphs for compatibility and delete non-compatible glyphs  ##############
+#########################################
+
 
 ######################################### 
 ############# write report ##############
