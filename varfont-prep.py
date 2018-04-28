@@ -1,9 +1,15 @@
 ### varfont prep
 
+from vanilla.dialogs import *
+from mojo.UI import AskYesNoCancel
+
 # take in multiple fonts
     # give user the finder UI to select multiple fonts
     # or allow all open fonts
+help(getFile)
+inputFonts = getFile("select masters for var font", allowsMultipleSelection=True, fileTypes=["ufo"])
 
+print(inputFonts)
 
 # duplicate these fonts, deleting all glyphs which can not be interpolated
 
