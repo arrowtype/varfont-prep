@@ -6,8 +6,9 @@ import shutil
 import datetime
 
 report = """
-Var Prep Report:
-    
+Var Prep Report
+********************************************  
+  
 """
 now = datetime.datetime.now()
 
@@ -132,15 +133,21 @@ commonGlyphs = set(glyphLists[0]).intersection(*glyphLists[1:])
 print(commonGlyphs)
 
 
-### NOT YET WORKING
+### NOT YET WORKING –– why are glyphs not being removed?
 for fontFile in os.listdir(newFolderPath):
+    fullFontPath = newFolderPath + "/" + fontFile
     f = OpenFont(fullFontPath, showUI=False)
+    
+    report += "Unique glyphs removed from " + f.info.familyName + " " + f.info.styleName + ":\n"
+    
+    print(f.info.familyName + " " + f.info.styleName)
     for g in f:
         print(g.name)
-        if g.name in f.keys():
-            if g.name not in commonGlyphs:
-                f.removeGlyph(g.name)
-                print(g.name + " removed from " + f.info.styleName)
+        if g.name not in commonGlyphs:
+            f.removeGlyph(g.name) ## not yet actually removing glyphs ... do i need to specify the layername?
+            print(g.name + " removed from " + f.info.styleName)
+            
+            report += " - " + g.name + "\n"
 
 ######################################### 
 ############# write report ##############
