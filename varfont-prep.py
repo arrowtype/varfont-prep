@@ -157,6 +157,10 @@ for fontFile in os.listdir(newFolderPath):
 
 # set up empty list for compatible glyphs
 compatibleGlyphs = []
+nonCompatibleGlyphs = []
+compatibleGlyphsReport = ""
+nonCompatibleGlyphsReport = ""
+
 compatibilityChecked = False
 
 for fontFile in os.listdir(newFolderPath):
@@ -181,56 +185,76 @@ for fontFile in os.listdir(newFolderPath):
 
                 if glyphCompatibility[0] == True:
                     compatibleGlyphs.append(g.name)
+                    # compatibleGlyphsReport += g.name + "\n" + str(glyphCompatibility) + "\n"
                 else:
-                    report += g.name + "\n" + str(glyphCompatibility) + "\n"
+                    nonCompatibleGlyphs.append(g.name)
+                    nonCompatibleGlyphsReport += g.name + "\n" + str(glyphCompatibility) + "\n"
     
     # set to true to stop unnecessary looping
     compatibilityChecked = True
+
+report += "\n ******************* \n"
+report += "compatibleGlyphs are " + str(compatibleGlyphs)
+
+# report += "\n ******************* \n"
+# report += "compatible glyphs: \n"
+# report += compatibleGlyphsReport
+
+report += "\n ******************* \n"
+report += "non-compatible glyphs: \n"
+report += nonCompatibleGlyphsReport
 
 # remove glyphs that aren't compatible in every font
 for fontFile in os.listdir(newFolderPath):
     fullFontPath = newFolderPath + "/" + fontFile
     f = OpenFont(fullFontPath, showUI=False)
     
-    report += "*******************"
+    report += "\n ******************* \n"
+    report += "Non-compatible glyphs removed from " + f.info.familyName + " " + f.info.styleName + ":\n"
+    
+    for g in f:
+        print(g.name)
+        
+        if g.name in nonCompatibleGlyphs:
+            f.removeGlyph(g.name)
+
+            print(g.name + " removed from " + f.info.styleName)
+            
+            report += " - " + g.name + "\n"
+            
+    f.save()
+    
+    for g in f.templateKeys():
+        f.removeGlyph(g)
+        
+    f.save()
+    
+    if 'space' not in f.keys():
+        f.newGlyph('space')
+        f['space'].unicode = '0020'
+        f['space'].width = 600
+        
+    f.save()
+    f.close()
+
+# remove guides
+for fontFile in os.listdir(newFolderPath):
+    fullFontPath = newFolderPath + "/" + fontFile
+    f = OpenFont(fullFontPath, showUI=False)
+    
+    report += "******************* \n"
     report += "Guides removed from " + f.info.familyName + " " + f.info.styleName + ":\n"
     
     for g in f:
         if g.guides != ():
             g.clearGuides()
             report += " - " + g.name + "\n"
-
-# remove glyphs that aren't compatible in every font
-for fontFile in os.listdir(newFolderPath):
-    fullFontPath = newFolderPath + "/" + fontFile
-    f = OpenFont(fullFontPath, showUI=False)
     
-    report += "*******************"
-    report += "Non-compatible glyphs removed from " + f.info.familyName + " " + f.info.styleName + ":\n"
-    
-    for g in f:
-        print(g.name)
-        
-        if g.name not in compatibleGlyphs:
-            f.removeGlyph(g.name)
-
-            print(g.name + " removed from " + f.info.styleName)
-            
-            report += " - " + g.name + "\n"
-        
     f.save()
     f.close()
 
 
-############################################################ 
-############# TO DO: check glyphs for compatibility and delete non-compatible glyphs  ##############
-########################################################### 
 
-# loop through glyphs and check compatibility
-# if a glyph isn't compatible, add it to a non-compatible list
-# add to the report that it's not compatible, and add a point + contour table to the report
-# 
-# for each font, remove all the glyphs in the non-compatible list 
 
 #########################################################  ################ 
 ############# TO DO?: include designspace file handling? ##############
