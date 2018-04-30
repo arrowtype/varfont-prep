@@ -111,6 +111,7 @@ duplicateFontsToFontPrepFolder(inputFonts, newFolderPath)
 
 glyphLists = []
 
+# create lists of glyphs in each font
 for fontFile in os.listdir(newFolderPath):
     print(fontFile)
     fullFontPath = newFolderPath + "/" + fontFile 
@@ -129,11 +130,12 @@ for fontFile in os.listdir(newFolderPath):
 
 print(glyphLists)
 
+# create one list of glyphs present in every font
 commonGlyphs = set(glyphLists[0]).intersection(*glyphLists[1:])
 print(commonGlyphs)
 
 
-
+# remove glyphs that aren't present in every font
 for fontFile in os.listdir(newFolderPath):
     fullFontPath = newFolderPath + "/" + fontFile
     f = OpenFont(fullFontPath, showUI=False)
@@ -151,6 +153,19 @@ for fontFile in os.listdir(newFolderPath):
         
     f.save()
     f.close()
+
+# set up empty list for compatible glyphs
+compatibleGlyphs = []
+
+# for g in font1
+    # f in all fonts
+        # glyphCompatibility = g.isCompatible(f[g.name])
+        # if glyphCompatibility[0] = True
+            # compatibleGlyphs.append(g.name)
+        # else
+            # report += g.name + "/n" + glyphCompatibility + "/n"
+
+
 
 
 ############################################################ 
