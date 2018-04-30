@@ -135,6 +135,39 @@ commonGlyphs = set(glyphLists[0]).intersection(*glyphLists[1:])
 print(commonGlyphs)
 
 
+
+# set up empty list for compatible glyphs
+compatibleGlyphs = []
+compatibilityChecked = False
+
+for fontFile in os.listdir(newFolderPath):
+    print(fontFile)
+    fullFontPath = newFolderPath + "/" + fontFile 
+    print(fullFontPath)
+    f = OpenFont(fullFontPath, showUI=False)
+    fontName = f.info.familyName + " " + f.info.styleName
+
+    # if compatibility has not yet been checked
+    if compatibilityChecked = False:
+        # for g in font1
+        for g in f:
+            # f in all fonts
+            for fontFile in os.listdir(newFolderPath):
+                fullFontPath = newFolderPath + "/" + fontFile 
+                checkingFont = OpenFont(fullFontPath, showUI=False)
+                fontName = f.info.familyName + " " + f.info.styleName
+
+                # test glyphCompatibility
+                glyphCompatibility = g.isCompatible(checkingFont[g.name])
+
+                if glyphCompatibility[0] = True:
+                    compatibleGlyphs.append(g.name)
+                else:
+                    report += g.name + "/n" + glyphCompatibility + "/n"
+    
+    # set to true to stop unnecessary looping
+    compatibilityChecked = True
+
 # remove glyphs that aren't present in every font
 for fontFile in os.listdir(newFolderPath):
     fullFontPath = newFolderPath + "/" + fontFile
@@ -145,8 +178,10 @@ for fontFile in os.listdir(newFolderPath):
     print(f.info.familyName + " " + f.info.styleName)
     for g in f:
         print(g.name)
+
+        
         if g.name not in commonGlyphs:
-            f.removeGlyph(g.name) ## not yet actually removing glyphs ... do i need to specify the layername?
+            f.removeGlyph(g.name)
             print(g.name + " removed from " + f.info.styleName)
             
             report += " - " + g.name + "\n"
@@ -154,18 +189,26 @@ for fontFile in os.listdir(newFolderPath):
     f.save()
     f.close()
 
-# set up empty list for compatible glyphs
-compatibleGlyphs = []
+# remove glyphs that aren't compatible in every font
+for fontFile in os.listdir(newFolderPath):
+    fullFontPath = newFolderPath + "/" + fontFile
+    f = OpenFont(fullFontPath, showUI=False)
+    
+    report += "Non-compatible glyphs removed from " + f.info.familyName + " " + f.info.styleName + ":\n"
+    
+    print(f.info.familyName + " " + f.info.styleName)
+    for g in f:
+        print(g.name)
+        
+        if g.name not in compatibleGlyphs:
+            f.removeGlyph(g.name)
 
-# for g in font1
-    # f in all fonts
-        # glyphCompatibility = g.isCompatible(f[g.name])
-        # if glyphCompatibility[0] = True
-            # compatibleGlyphs.append(g.name)
-        # else
-            # report += g.name + "/n" + glyphCompatibility + "/n"
-
-
+            print(g.name + " removed from " + f.info.styleName)
+            
+            report += " - " + g.name + "\n"
+        
+    f.save()
+    f.close()
 
 
 ############################################################ 
