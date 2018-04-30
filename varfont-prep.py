@@ -182,21 +182,32 @@ for fontFile in os.listdir(newFolderPath):
                 if glyphCompatibility[0] == True:
                     compatibleGlyphs.append(g.name)
                 else:
-                    report += g.name + "/n" + str(glyphCompatibility) + "/n"
+                    report += g.name + "\n" + str(glyphCompatibility) + "\n"
     
     # set to true to stop unnecessary looping
     compatibilityChecked = True
-
-
 
 # remove glyphs that aren't compatible in every font
 for fontFile in os.listdir(newFolderPath):
     fullFontPath = newFolderPath + "/" + fontFile
     f = OpenFont(fullFontPath, showUI=False)
     
+    report += "*******************"
+    report += "Guides removed from " + f.info.familyName + " " + f.info.styleName + ":\n"
+    
+    for g in f:
+        if g.guides != ():
+            g.clearGuides()
+            report += " - " + g.name + "\n"
+
+# remove glyphs that aren't compatible in every font
+for fontFile in os.listdir(newFolderPath):
+    fullFontPath = newFolderPath + "/" + fontFile
+    f = OpenFont(fullFontPath, showUI=False)
+    
+    report += "*******************"
     report += "Non-compatible glyphs removed from " + f.info.familyName + " " + f.info.styleName + ":\n"
     
-    print(f.info.familyName + " " + f.info.styleName)
     for g in f:
         print(g.name)
         
