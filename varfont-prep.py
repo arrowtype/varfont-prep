@@ -167,7 +167,7 @@ for fontFile in os.listdir(newFolderPath):
     fontName = f.info.familyName + " " + f.info.styleName
 
     # if compatibility has not yet been checked
-    if compatibilityChecked = False:
+    if compatibilityChecked == False:
         # for g in font1
         for g in f:
             # f in all fonts
@@ -179,10 +179,10 @@ for fontFile in os.listdir(newFolderPath):
                 # test glyphCompatibility
                 glyphCompatibility = g.isCompatible(checkingFont[g.name])
 
-                if glyphCompatibility[0] = True:
+                if glyphCompatibility[0] == True:
                     compatibleGlyphs.append(g.name)
                 else:
-                    report += g.name + "/n" + glyphCompatibility + "/n"
+                    report += g.name + "/n" + str(glyphCompatibility) + "/n"
     
     # set to true to stop unnecessary looping
     compatibilityChecked = True
