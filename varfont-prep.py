@@ -50,7 +50,7 @@ def copyFonts(inputFonts, newFolderPath):
         head, tail = os.path.split(fontPath)
         
         # copy UFO into newFolderPath
-        shutil.copytree(fontPath, newFolderPath + "/varprep-" + tail)
+        shutil.copytree(fontPath, newFolderPath + "/" + tail) # "+ /varprep- +"  was formerly added to path, before tail
 
 def makeVarFontPrepFolder(inputFonts):
     
@@ -73,17 +73,11 @@ def makeVarFontPrepFolder(inputFonts):
     # make new folder path
     newFolderPath = head + "/" + newFolderName
 
-    if not os.path.exists(newFolderPath):
-        os.mkdir(newFolderPath)
-        print(newFolderPath)
-        return str(newFolderPath)
-    else:
-        # add current date & time to folder path if the base name is already taken
-        now = datetime.datetime.now()
-        newFolderPath += "-" + now.strftime("%Y_%m_%d-%H_%M_%S")
-        os.mkdir(newFolderPath)
-        print(newFolderPath)
-        return str(newFolderPath)
+    now = datetime.datetime.now()
+    newFolderPath += "-" + now.strftime("%Y_%m_%d-%H_%M_%S")
+    os.mkdir(newFolderPath)
+    print(newFolderPath)
+    return str(newFolderPath)
 
     # # if font family names are different, print the returned error
     # else:

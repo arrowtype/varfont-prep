@@ -1,7 +1,7 @@
 from vanilla.dialogs import *
 
 # copy-paste to fill this list with whatever glyphs fontMake flags as not being interpolatable
-glyphsToDelete = ['a.italic']
+glyphsToDelete = []
 
 # help(CurrentFont().removeGlyph())
 
@@ -16,6 +16,6 @@ for fontPath in inputFonts:
         print(glyphName)
         if glyphName in f.glyphOrder:
             f.removeGlyph(glyphName)
-        f.save()
-        f.close()
+    f.save()
+    f.close()
 
