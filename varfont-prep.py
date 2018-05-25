@@ -144,8 +144,9 @@ for fontFile in os.listdir(newFolderPath):
             f.removeGlyph(g.name)
             print(g.name + " removed from " + f.info.styleName)
             
-            report += " - " + g.name + "\n"
-        
+            report += g.name + "; "
+  
+    report += "\n \n"  
     f.save()
     f.close()
 
@@ -188,7 +189,8 @@ for fontFile in os.listdir(newFolderPath):
     compatibilityChecked = True
 
 report += "\n ******************* \n"
-report += "compatibleGlyphs are " + str(compatibleGlyphs)
+compatibleGlyphsSet = set(compatibleGlyphs)
+report += "compatibleGlyphs are " + str(compatibleGlyphsSet)
 
 # report += "\n ******************* \n"
 # report += "compatible glyphs: \n"
@@ -242,10 +244,27 @@ for fontFile in os.listdir(newFolderPath):
     for g in f:
         if g.guides != ():
             g.clearGuides()
-            report += " - " + g.name + "\n"
+            report += g.name + "; "
+            
+    report += "\n \n" 
     
     f.save()
     f.close()
+    
+# decompose components
+# for fontFile in os.listdir(newFolderPath):
+#     fullFontPath = newFolderPath + "/" + fontFile
+#     f = OpenFont(fullFontPath, showUI=False)
+    
+#     report += "******************* \n"
+#     report += "Glyphs decomposes in " + f.info.familyName + " " + f.info.styleName + ":\n"
+    
+#     for g in f:
+#         # if glyph has components
+#             # decompose components
+    
+#     f.save()
+#     f.close()
 
 
 

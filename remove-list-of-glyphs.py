@@ -1,7 +1,7 @@
 from vanilla.dialogs import *
 
 # copy-paste to fill this list with whatever glyphs fontMake flags as not being interpolatable
-glyphsToDelete = []
+glyphsToDelete = ['divide', 'plusminus']
 
 # help(CurrentFont().removeGlyph())
 
@@ -9,8 +9,6 @@ inputFonts = getFile("select masters for var font", allowsMultipleSelection=True
 
 for fontPath in inputFonts:
     f = OpenFont(fontPath, showUI=False)
-    print(f.glyphOrder)
-    help(f.removeGlyph)
     # # open the fonts, then:
     for glyphName in glyphsToDelete:
         print(glyphName)
