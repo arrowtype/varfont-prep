@@ -15,19 +15,12 @@ now = datetime.datetime.now()
 # take in multiple fonts
 inputFonts = getFile("select masters for var font", allowsMultipleSelection=True, fileTypes=["ufo"])
 
-# def generateReport(inputFonts, errors):
-#     newFolderPath = makeVarFontPrepFolder(inputFonts)
-    
-#     report = open(newFolderPath + "/" + 'varfontprep-report.txt','w')
-#     report.write(str(errors))
-#     report.close()
-
 def checkIfSameFamilyName(inputFonts):
     fontFamilyNames = []
     global report
 
     for fontPath in inputFonts:
-        f = OpenFont(fontPath, showUI=False)
+        f = OpenFont(fontPath, showInterface=False)
         familyName = f.info.familyName
         fontFamilyNames.append(familyName)
         
@@ -110,7 +103,7 @@ for fontFile in os.listdir(newFolderPath):
     print(fontFile)
     fullFontPath = newFolderPath + "/" + fontFile 
     print(fullFontPath)
-    f = OpenFont(fullFontPath, showUI=False)
+    f = OpenFont(fullFontPath, showInterface=False)
     fontName = f.info.familyName + " " + f.info.styleName
     
     print(fontName)
@@ -131,7 +124,7 @@ print(commonGlyphs)
 # remove glyphs that aren't present in every font
 for fontFile in os.listdir(newFolderPath):
     fullFontPath = newFolderPath + "/" + fontFile
-    f = OpenFont(fullFontPath, showUI=False)
+    f = OpenFont(fullFontPath, showInterface=False)
     
     report += "Unique glyphs removed from " + f.info.familyName + " " + f.info.styleName + ":\n"
     
@@ -150,8 +143,26 @@ for fontFile in os.listdir(newFolderPath):
     f.save()
     f.close()
 
+
+# decompose all glyphs to keep things compatible
+### TO DO: is this realy needed?
+# for fontFile in os.listdir(newFolderPath):
+#     fullFontPath = newFolderPath + "/" + fontFile
+#     f = OpenFont(fullFontPath, showInterface=False)
+    
+#     report += "Glyphs decomposed for " + f.info.familyName + " " + f.info.styleName + ":\n"
+    
+#     print(f.info.familyName + " " + f.info.styleName)
+#     for g in f:
+#         g.decompose()
+  
+#     report += "\n \n"  
+#     f.save()
+#     f.close()
+
+
 # set up empty list for compatible glyphs
-compatibleGlyphs = []
+compatibleGlyphs = ["space"]
 nonCompatibleGlyphs = []
 compatibleGlyphsReport = ""
 nonCompatibleGlyphsReport = ""
@@ -162,7 +173,7 @@ for fontFile in os.listdir(newFolderPath):
     print(fontFile)
     fullFontPath = newFolderPath + "/" + fontFile 
     print(fullFontPath)
-    f = OpenFont(fullFontPath, showUI=False)
+    f = OpenFont(fullFontPath, showInterface=False)
     fontName = f.info.familyName + " " + f.info.styleName
 
     # if compatibility has not yet been checked
@@ -172,7 +183,7 @@ for fontFile in os.listdir(newFolderPath):
             # f in all fonts
             for fontFile in os.listdir(newFolderPath):
                 fullFontPath = newFolderPath + "/" + fontFile 
-                checkingFont = OpenFont(fullFontPath, showUI=False)
+                checkingFont = OpenFont(fullFontPath, showInterface=False)
                 fontName = f.info.familyName + " " + f.info.styleName
 
                 # test glyphCompatibility
@@ -203,7 +214,7 @@ report += nonCompatibleGlyphsReport
 # remove glyphs that aren't compatible in every font
 for fontFile in os.listdir(newFolderPath):
     fullFontPath = newFolderPath + "/" + fontFile
-    f = OpenFont(fullFontPath, showUI=False)
+    f = OpenFont(fullFontPath, showInterface=False)
     
     report += "\n ******************* \n"
     report += "Non-compatible glyphs removed from " + f.info.familyName + " " + f.info.styleName + ":\n"
@@ -236,14 +247,14 @@ for fontFile in os.listdir(newFolderPath):
 # remove guides
 for fontFile in os.listdir(newFolderPath):
     fullFontPath = newFolderPath + "/" + fontFile
-    f = OpenFont(fullFontPath, showUI=False)
+    f = OpenFont(fullFontPath, showInterface=False)
     
     report += "******************* \n"
     report += "Guides removed from " + f.info.familyName + " " + f.info.styleName + ":\n"
     
     for g in f:
-        if g.guides != ():
-            g.clearGuides()
+        if g.guidelines != ():
+            g.clearGuidelines()
             report += g.name + "; "
             
     report += "\n \n" 
@@ -254,7 +265,7 @@ for fontFile in os.listdir(newFolderPath):
 # decompose components
 # for fontFile in os.listdir(newFolderPath):
 #     fullFontPath = newFolderPath + "/" + fontFile
-#     f = OpenFont(fullFontPath, showUI=False)
+#     f = OpenFont(fullFontPath, showInterface=False)
     
 #     report += "******************* \n"
 #     report += "Glyphs decomposes in " + f.info.familyName + " " + f.info.styleName + ":\n"
@@ -266,7 +277,18 @@ for fontFile in os.listdir(newFolderPath):
 #     f.save()
 #     f.close()
 
+#########################################################  ################ 
+############# TO DO: sort fonts in the same way ##############
+######################################################### ################ 
 
+#########################################################  ################ 
+############# TO DO?: check kerning compatibility ##############
+######################################################### ################ 
+
+
+#########################################################  ################ 
+############# TO DO: check anchor compatibility ##############
+######################################################### ################ 
 
 
 #########################################################  ################ 

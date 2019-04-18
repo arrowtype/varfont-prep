@@ -1,0 +1,43 @@
+# VarFont Prep
+
+This is a work-in-progress script to prep UFOs for the generation of a variable font ("VF").
+
+A current challenge in making variable fonts from UFOs is that FontMake & FontTools expect all input font masters to be almost perfectly in-sync, without any different or incompatible glyphs. If you have any incompatibility – whether in glyphs, character sets, or even guides, the build will fail. During a design project, this kind of synchrony between several masters is nearly impossible, and certainly a counterproductive thing to focus on (because it prevents rapid exploration within masters).
+
+VarFont Prep seeks to make it easy: it checks UFOs for consistency and compatibility, then outputs new, build-ready UFOs which exclude all non-compatible glyphs. It also outputs a text report to make clear what glyphs were deleted. This is a slightly brute-force approach to the problem, but it allows the type design process to be organic (and therefore productive): exploration can be done on alternate glyphs within each master, without worries about making compatible alternate characters in every other master of the font project. The variable font can be prototyped and tested along the way, with fallback fonts used in proofs where useful. The variable font may have flaws – and that's a good thing! During a design process, *testable* is better than perfect.
+
+**NOTE:** VarFont Prep does not edit the UFOs you select, but rather creates edited copies of these. However, as with any scripting for type design, it is not guaranteed that this workflow is 100% safe to the source fonts. You should always keep backups and use version control to make it simple to revert to earlier versions of the project, in case there are unintended effects on your source files.
+
+## Usage
+
+1. Use `git clone` to download this repo into your RoboFont scripts folder (or download it as a zip).
+2. Open RoboFont
+3. Run **Scripts > varfont-prep > varfont-prep.py**
+   1. This will present a file explorer, allowing you to select multiple UFOs. Select all UFOs which you wish to prep for a variable font.
+   2. Click "Open"
+   3. Wait while the files process
+4. Find the varfont-prep folder, which will be at the same level as the UFOs you selected. It will contain UFOs that are ready (or close to ready) for interpolation.
+5. Create or adapt a designspace file to describe the variable font you wish to create.
+6. Use [FontMake](https://github.com/googlefonts/fontmake) to generate a variable font: `fontmake -o variable -m [[ PATH/DESIGNSPACE_FILE.designspace ]]`
+
+### Current Limitations
+
+- VarFont Prep is not currently ready to output production-ready font sources. This is the goal over time, but currently, it is a tool for prototyping, rather than for the mastering of release-ready fonts.
+- Glyphs compatibility is checked with the [isCompatible](https://fontparts.readthedocs.io/en/stable/objectref/objects/glyph.html?highlight=compatible#fontParts.base.BaseGlyph.isCompatible) method of FontParts, which is not as strict as the requirements of the cu2qu module used in the FontMake VF build process. However, if glyphs remain which are incompatible and this blocks the VF build, FontMake tends to output decently-specific warnings about this.
+  - When FontMake *does* tell you which glyphs are incompatible, you can either fix them in the original files, then run VarFont Prep again, *or* you can run `remove-list-of-glyphs.py` on the UFOs in the next folder or prepped UFOs. Obviously, be sure not to run this on your source font files.
+
+
+## Needs
+
+Priority 1
+
+- Do not decompose accents unless the option is specifically requested. Inform the user of the file size repercussions of this.
+- Run from a designspace file rather than selected UFOs
+- Include an updated designspace file in the output
+
+Priority 2
+
+- Probably, run `cu2qu -i` to pre-convert to TTF. This will provide a more-accurate view of what can and cannot convert. 
+- Instead of removing unsupported glyphs, there should be the option to fill them in from the next-closest master. E.G. ExtraBold Italic glyphs could fill in for missing glyphs in Heavy Italic.
+  - (how would this detect the next-closest master? with the designspace?)
+- Can this run as an external script, instead of being tied to RoboFont?
