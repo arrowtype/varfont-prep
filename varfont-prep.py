@@ -240,6 +240,9 @@ for fontFile in os.listdir(newFolderPath):
         f.newGlyph('space')
         f['space'].unicode = '0020'
         f['space'].width = 600
+
+    if f['space'].width == 0:
+        f['space'].width = 600
         
     f.save()
     f.close()
