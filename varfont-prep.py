@@ -113,10 +113,9 @@ duplicateFontsToFontPrepFolder(inputFontPaths, newFolderPath)
 
 ###############################################
 ######### copy and update designspace #########
-###############################################
 
 
-def copyDesignSpace(designspacePath):
+def copyDesignSpace(designspacePath, newFolderPath):
 
     # duplicate designspace into new folder
     inputDStail = os.path.split(designspacePath)[1]
@@ -127,243 +126,246 @@ def copyDesignSpace(designspacePath):
     # update source & instance paths in designspace as needed
     outputDS = DesignSpaceDocument.fromfile(outputDSpath)
 
+    # updates path if sources were originally in a different directory than designspace file
     for source in outputDS.sources:
-        print(source.filename)  # prints the original value
+        newFontPath = newFolderPath + '/' + os.path.split(source.path)[1]
+        source.path = newFontPath
 
-        fontFilename = os.path.split(source.path)[1]
-        setattr(source, 'filename', fontFilename)
-
-        print(source.filename)  # this does change to the value I want
-
-    # this doesn't overwrite the designspace file...
     outputDS.write(outputDSpath)
 
 
-copyDesignSpace(designspacePath)
+copyDesignSpace(designspacePath, newFolderPath)
 
-# #########################################
-# ######### make fonts compatible #########
-# #########################################
 
-# glyphLists = []
+#########################################
+######### make fonts compatible #########
+#########################################
 
-# # create lists of glyphs in each font
-# for fontFile in os.listdir(newFolderPath):
-#     print(fontFile)
-#     fullFontPath = newFolderPath + "/" + fontFile
-#     print(fullFontPath)
-#     f = OpenFont(fullFontPath, showInterface=False)
-#     fontName = f.info.familyName + " " + f.info.styleName
+glyphLists = []
 
-#     print(fontName)
+copiedFonts = []
+for file in os.listdir(newFolderPath):
+    if os.path.splitext(file)[1] == ".ufo":
+        copiedFonts.append(file)
 
-#     glyphs = []
 
-#     for g in f:
-#         glyphs.append(g.name)
+# create lists of glyphs in each font
+for fontFile in copiedFonts:
+    print(fontFile)
+    fullFontPath = newFolderPath + "/" + fontFile
+    print(fullFontPath)
+    f = OpenFont(fullFontPath, showInterface=False)
+    fontName = f.info.familyName + " " + f.info.styleName
 
-#     glyphLists.append(glyphs)
+    print(fontName)
+
+    glyphs = []
+
+    for g in f:
+        glyphs.append(g.name)
+
+    glyphLists.append(glyphs)
 
 # print(glyphLists)
 
-# # create one list of glyphs present in every font
-# commonGlyphs = set(glyphLists[0]).intersection(*glyphLists[1:])
+# create one list of glyphs present in every font
+commonGlyphs = set(glyphLists[0]).intersection(*glyphLists[1:])
 # print(commonGlyphs)
 
-# # remove glyphs that aren't present in every font
-# for fontFile in os.listdir(newFolderPath):
+# remove glyphs that aren't present in every font
+for fontFile in copiedFonts:
+    fullFontPath = newFolderPath + "/" + fontFile
+    f = OpenFont(fullFontPath, showInterface=False)
+
+    report += "Unique glyphs removed from " + \
+        f.info.familyName + " " + f.info.styleName + ":\n"
+
+    print(f.info.familyName + " " + f.info.styleName)
+    for g in f:
+        print(g.name)
+
+        if g.name not in commonGlyphs:
+            f.removeGlyph(g.name)
+            print(g.name + " removed from " + f.info.styleName)
+
+            report += g.name + "; "
+
+    report += "\n \n"
+    f.save()
+    f.close()
+
+
+# decompose all glyphs to keep things compatible
+# TO DO: is this realy needed?
+# for fontFile in copiedFonts:
 #     fullFontPath = newFolderPath + "/" + fontFile
 #     f = OpenFont(fullFontPath, showInterface=False)
 
-#     report += "Unique glyphs removed from " + \
-#         f.info.familyName + " " + f.info.styleName + ":\n"
+#     report += "Glyphs decomposed for " + f.info.familyName + " " + f.info.styleName + ":\n"
 
 #     print(f.info.familyName + " " + f.info.styleName)
 #     for g in f:
-#         print(g.name)
-
-#         if g.name not in commonGlyphs:
-#             f.removeGlyph(g.name)
-#             print(g.name + " removed from " + f.info.styleName)
-
-#             report += g.name + "; "
+#         g.decompose()
 
 #     report += "\n \n"
 #     f.save()
 #     f.close()
 
 
-# # decompose all glyphs to keep things compatible
-# # TO DO: is this realy needed?
-# # for fontFile in os.listdir(newFolderPath):
-# #     fullFontPath = newFolderPath + "/" + fontFile
-# #     f = OpenFont(fullFontPath, showInterface=False)
+# set up empty list for compatible glyphs
+compatibleGlyphs = ["space"]
+nonCompatibleGlyphs = []
+compatibleGlyphsReport = ""
+nonCompatibleGlyphsReport = ""
 
-# #     report += "Glyphs decomposed for " + f.info.familyName + " " + f.info.styleName + ":\n"
+compatibilityChecked = False
 
-# #     print(f.info.familyName + " " + f.info.styleName)
-# #     for g in f:
-# #         g.decompose()
+for fontFile in copiedFonts:
+    print(fontFile)
+    fullFontPath = newFolderPath + "/" + fontFile
+    print(fullFontPath)
+    f = OpenFont(fullFontPath, showInterface=False)
+    fontName = f.info.familyName + " " + f.info.styleName
 
-# #     report += "\n \n"
-# #     f.save()
-# #     f.close()
+    # if compatibility has not yet been checked
+    if compatibilityChecked == False:
+        # for g in font1
+        for g in f:
+            # f in all fonts
+            for fontFile in copiedFonts:
+                fullFontPath = newFolderPath + "/" + fontFile
+                checkingFont = OpenFont(fullFontPath, showInterface=False)
+                fontName = f.info.familyName + " " + f.info.styleName
 
+                # test glyphCompatibility
+                glyphCompatibility = g.isCompatible(checkingFont[g.name])
 
-# # set up empty list for compatible glyphs
-# compatibleGlyphs = ["space"]
-# nonCompatibleGlyphs = []
-# compatibleGlyphsReport = ""
-# nonCompatibleGlyphsReport = ""
+                if glyphCompatibility[0] == True:
+                    compatibleGlyphs.append(g.name)
+                    # compatibleGlyphsReport += g.name + "\n" + str(glyphCompatibility) + "\n"
+                else:
+                    nonCompatibleGlyphs.append(g.name)
+                    nonCompatibleGlyphsReport += g.name + \
+                        "\n" + str(glyphCompatibility) + "\n"
 
-# compatibilityChecked = False
+    # set to true to stop unnecessary looping
+    compatibilityChecked = True
 
-# for fontFile in os.listdir(newFolderPath):
-#     print(fontFile)
-#     fullFontPath = newFolderPath + "/" + fontFile
-#     print(fullFontPath)
-#     f = OpenFont(fullFontPath, showInterface=False)
-#     fontName = f.info.familyName + " " + f.info.styleName
-
-#     # if compatibility has not yet been checked
-#     if compatibilityChecked == False:
-#         # for g in font1
-#         for g in f:
-#             # f in all fonts
-#             for fontFile in os.listdir(newFolderPath):
-#                 fullFontPath = newFolderPath + "/" + fontFile
-#                 checkingFont = OpenFont(fullFontPath, showInterface=False)
-#                 fontName = f.info.familyName + " " + f.info.styleName
-
-#                 # test glyphCompatibility
-#                 glyphCompatibility = g.isCompatible(checkingFont[g.name])
-
-#                 if glyphCompatibility[0] == True:
-#                     compatibleGlyphs.append(g.name)
-#                     # compatibleGlyphsReport += g.name + "\n" + str(glyphCompatibility) + "\n"
-#                 else:
-#                     nonCompatibleGlyphs.append(g.name)
-#                     nonCompatibleGlyphsReport += g.name + \
-#                         "\n" + str(glyphCompatibility) + "\n"
-
-#     # set to true to stop unnecessary looping
-#     compatibilityChecked = True
+report += "\n ******************* \n"
+compatibleGlyphsSet = set(compatibleGlyphs)
+report += "compatibleGlyphs are " + str(compatibleGlyphsSet)
 
 # report += "\n ******************* \n"
-# compatibleGlyphsSet = set(compatibleGlyphs)
-# report += "compatibleGlyphs are " + str(compatibleGlyphsSet)
+# report += "compatible glyphs: \n"
+# report += compatibleGlyphsReport
 
-# # report += "\n ******************* \n"
-# # report += "compatible glyphs: \n"
-# # report += compatibleGlyphsReport
+report += "\n ******************* \n"
+report += "non-compatible glyphs: \n"
+report += nonCompatibleGlyphsReport
 
-# report += "\n ******************* \n"
-# report += "non-compatible glyphs: \n"
-# report += nonCompatibleGlyphsReport
+# remove glyphs that aren't compatible in every font
+for fontFile in copiedFonts:
+    fullFontPath = newFolderPath + "/" + fontFile
+    f = OpenFont(fullFontPath, showInterface=False)
 
-# # remove glyphs that aren't compatible in every font
-# for fontFile in os.listdir(newFolderPath):
-#     fullFontPath = newFolderPath + "/" + fontFile
-#     f = OpenFont(fullFontPath, showInterface=False)
+    report += "\n ******************* \n"
+    report += "Non-compatible glyphs removed from " + \
+        f.info.familyName + " " + f.info.styleName + ":\n"
 
-#     report += "\n ******************* \n"
-#     report += "Non-compatible glyphs removed from " + \
-#         f.info.familyName + " " + f.info.styleName + ":\n"
+    for g in f:
+        print(g.name)
 
-#     for g in f:
-#         print(g.name)
+        if g.name in nonCompatibleGlyphs:
+            f.removeGlyph(g.name)
 
-#         if g.name in nonCompatibleGlyphs:
-#             f.removeGlyph(g.name)
+            print(g.name + " removed from " + f.info.styleName)
 
-#             print(g.name + " removed from " + f.info.styleName)
+            report += " - " + g.name + "\n"
 
-#             report += " - " + g.name + "\n"
+    f.save()
 
-#     f.save()
+    for g in f.templateKeys():
+        f.removeGlyph(g)
 
-#     for g in f.templateKeys():
-#         f.removeGlyph(g)
+    f.save()
 
-#     f.save()
+    if 'space' not in f.keys():
+        f.newGlyph('space')
+        f['space'].unicode = '0020'
+        f['space'].width = 600
 
-#     if 'space' not in f.keys():
-#         f.newGlyph('space')
-#         f['space'].unicode = '0020'
-#         f['space'].width = 600
+    if f['space'].width == 0:
+        f['space'].width = 600
 
-#     if f['space'].width == 0:
-#         f['space'].width = 600
+    f.save()
+    f.close()
 
-#     f.save()
-#     f.close()
+# remove guides
+for fontFile in copiedFonts:
+    fullFontPath = newFolderPath + "/" + fontFile
+    f = OpenFont(fullFontPath, showInterface=False)
 
-# # remove guides
-# for fontFile in os.listdir(newFolderPath):
+    report += "******************* \n"
+    report += "Guides removed from " + \
+        f.info.familyName + " " + f.info.styleName + ":\n"
+
+    for g in f:
+        if g.guidelines != ():
+            g.clearGuidelines()
+            report += g.name + "; "
+
+    report += "\n \n"
+
+    f.save()
+    f.close()
+
+# decompose components
+# for fontFile in copiedFonts:
 #     fullFontPath = newFolderPath + "/" + fontFile
 #     f = OpenFont(fullFontPath, showInterface=False)
 
 #     report += "******************* \n"
-#     report += "Guides removed from " + \
-#         f.info.familyName + " " + f.info.styleName + ":\n"
+#     report += "Glyphs decomposes in " + f.info.familyName + " " + f.info.styleName + ":\n"
 
 #     for g in f:
-#         if g.guidelines != ():
-#             g.clearGuidelines()
-#             report += g.name + "; "
-
-#     report += "\n \n"
+#         # if glyph has components
+#             # decompose components
 
 #     f.save()
 #     f.close()
 
-# # decompose components
-# # for fontFile in os.listdir(newFolderPath):
-# #     fullFontPath = newFolderPath + "/" + fontFile
-# #     f = OpenFont(fullFontPath, showInterface=False)
+#########################################################  ################
+############# TO DO: sort fonts in the same way ##############
+######################################################### ################
 
-# #     report += "******************* \n"
-# #     report += "Glyphs decomposes in " + f.info.familyName + " " + f.info.styleName + ":\n"
-
-# #     for g in f:
-# #         # if glyph has components
-# #             # decompose components
-
-# #     f.save()
-# #     f.close()
-
-# #########################################################  ################
-# ############# TO DO: sort fonts in the same way ##############
-# ######################################################### ################
-
-# #########################################################  ################
-# ############# TO DO?: check kerning compatibility ##############
-# ######################################################### ################
+#########################################################  ################
+############# TO DO?: check kerning compatibility ##############
+######################################################### ################
 
 
-# #########################################################  ################
-# ############# TO DO: check anchor compatibility ##############
-# ######################################################### ################
+#########################################################  ################
+############# TO DO: check anchor compatibility ##############
+######################################################### ################
 
 
-# #########################################################  ################
-# ############# TO DO?: include designspace file handling? ##############
-# ######################################################### ################
+#########################################################  ################
+############# TO DO?: include designspace file handling? ##############
+######################################################### ################
 
-# # allow .designspace file extension to be selected
+# allow .designspace file extension to be selected
 
-# # if a file is UFO, do the UFO stuff
-# # if a file is designspace, move to new folder, with filenames updated to include varfontprep
-#     # (if you want to add those to names)
-#     # does adding stuff to the filename matter?
+# if a file is UFO, do the UFO stuff
+# if a file is designspace, move to new folder, with filenames updated to include varfontprep
+    # (if you want to add those to names)
+    # does adding stuff to the filename matter?
 
 
-# #########################################
-# ############# write report ##############
-# #########################################
+#########################################
+############# write report ##############
+#########################################
 
-# reportOutput = open(newFolderPath + "/" + 'varfontprep-report.txt', 'w')
-# reportOutput.write(now.strftime("%H:%M:%S; %d %B, %Y\n\n"))
-# reportOutput.write("*******************\n")
-# reportOutput.write(report)
-# reportOutput.close()
+reportOutput = open(newFolderPath + "/" + 'varfontprep-report.txt', 'w')
+reportOutput.write(now.strftime("%H:%M:%S; %d %B, %Y\n\n"))
+reportOutput.write("*******************\n")
+reportOutput.write(report)
+reportOutput.close()
