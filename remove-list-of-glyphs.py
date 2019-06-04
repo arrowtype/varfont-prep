@@ -6,7 +6,7 @@ from vanilla.dialogs import *
 # glyphsToDelete = ['LISTOFGLYPHSHERE']
 
 glyphsToDelete = AskString(
-    'Space-separated set of glyphnames to delete').replace("'", "").replace(",", "").split(" ")
+    'Input glyphnames to remove, then select UFOs').replace("'", "").replace(",", "").split(" ")
 
 # help(CurrentFont().removeGlyph())
 
