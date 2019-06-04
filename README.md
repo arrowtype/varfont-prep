@@ -15,16 +15,25 @@ VarFont Prep seeks to make it easy: it checks UFOs for consistency and compatibi
 1. Use `git clone` to download this repo into your RoboFont scripts folder (or download it as a zip).
 2. Open RoboFont
 3. Run **Scripts > varfont-prep > varfont-prep.py**
-   1. This will present a file explorer, allowing you to select multiple UFOs. Select all UFOs which you wish to prep for a variable font.
+   1. This will present a file explorer, allowing you to select the designspace file you want to use for your variable font.
    2. Click "Open"
-   3. Wait while the files process. This may take awhile, and will make RoboFont temporarily unresponsive.
+   3. Wait while the files process. This may take some time, and will make RoboFont temporarily unresponsive.
 4. Find the varfont-prep folder, which will be at the same level as the UFOs you selected. It will contain UFOs that are ready (or close to ready) for interpolation.
 5. Create or adapt a designspace file to describe the variable font you wish to create.
 6. Use [FontMake](https://github.com/googlefonts/fontmake) to generate a variable font: `fontmake -o variable -m [[ PATH/DESIGNSPACE_FILE.designspace ]]`
+   1. Likely, FontMake will report that there are incompatible glyphs. That's fine! Copy the glyph list output from this error.
+   2. Go back to RoboFont, and run the script `remove-list-of-glyphs.py` (also in this repo).
+   3. Paste in the copied list of incompatible glyphs to remove.
+   4. A file explorer will open. Find the `varfontprep` folder, and select all UFOs within it. This will remove the glyphs that are incompatible. This is a brute-force way to generate a VF for testing, and this is why we're working with duplicates! Obviously, be sure you aren't selecting the actual sources here, or you will need to dig into your backups.
+7. Re-run FontMake: `fontmake -o variable -m [[ PATH/DESIGNSPACE_FILE.designspace ]]`.
+   1. This may give an error connected to your OpenType features, such as `KeyError: ('a.italic', 'SingleSubst[0]', 'Lookup[0]', 'LookupList')`. If it does...
+   2. Use the script `add-feature_code-to-selected_fonts.py` to add blank feature code to all selected UFOs. If you prefer, you can edit the feature code in this script to whatever you want as the actual feature code for your output font. However, feature code is often the source of issues in font builds, so only add feature code when you actually want to start testing feature code.
+
+This is very much a work-in-progress set of techniques, and I will add to it more over time.
 
 ### Current Limitations
 
-- VarFont Prep is not currently ready to output production-ready font sources. This is the goal over time, but currently, it is a tool for prototyping, rather than for the mastering of release-ready fonts.
+- VarFont Prep is not currently ready to output production-ready font sources. It is a tool for prototyping rather than for mastering release-ready fonts, and the cleanliness of its outputs is very dependant on the cleanliness of the inputs. Of course, this is an advantage: shortcomings of font sources are often easiest to see in an output font.
 - Glyphs compatibility is checked with the [isCompatible](https://fontparts.readthedocs.io/en/stable/objectref/objects/glyph.html?highlight=compatible#fontParts.base.BaseGlyph.isCompatible) method of FontParts, which is not as strict as the requirements of the cu2qu module used in the FontMake VF build process. However, if glyphs remain which are incompatible and this blocks the VF build, FontMake tends to output decently-specific warnings about this.
   - When FontMake *does* tell you which glyphs are incompatible, you can either fix them in the original files, then run VarFont Prep again, *or* you can run `remove-list-of-glyphs.py` on the UFOs in the next folder or prepped UFOs. Obviously, be sure not to run this on your source font files.
 - Sometimes, the `/space` glyph is deleted in the prepped UFOs. This is currently patched by re-adding it and giving it a width of `600` units. Obviously, this is unintended. This issue may occur withclarify  other empty glyphs as well.
@@ -35,8 +44,8 @@ VarFont Prep seeks to make it easy: it checks UFOs for consistency and compatibi
 Priority 1
 
 - Do not decompose accents unless the option is specifically requested. Inform the user of the file size repercussions of this.
-- Run from a designspace file rather than selected UFOs
-- Include an updated designspace file in the output
+- ~~Run from a designspace file rather than selected UFOs~~ Done!
+- ~~Include an updated designspace file in the output~~ Done!
 - fix issue of `/space` deletion
 
 Priority 2
