@@ -21,13 +21,19 @@ VarFont Prep seeks to make it easy: it checks UFOs for consistency and compatibi
 4. Find the varfont-prep folder, which will be at the same level as the UFOs you selected. It will contain UFOs that are ready (or close to ready) for interpolation.
 5. Create or adapt a designspace file to describe the variable font you wish to create.
 6. Use [FontMake](https://github.com/googlefonts/fontmake) to generate a variable font: `fontmake -o variable -m [[ PATH/DESIGNSPACE_FILE.designspace ]]`
-   1. Likely, FontMake will report that there are incompatible glyphs. That's fine! Copy the glyph list output from this error.
-   2. Go back to RoboFont, and run the script `remove-list-of-glyphs.py` (also in this repo).
-   3. Paste in the copied list of incompatible glyphs to remove.
-   4. A file explorer will open. Find the `varfontprep` folder, and select all UFOs within it. This will remove the glyphs that are incompatible. This is a brute-force way to generate a VF for testing, and this is why we're working with duplicates! Obviously, be sure you aren't selecting the actual sources here, or you will need to dig into your backups.
-7. Re-run FontMake: `fontmake -o variable -m [[ PATH/DESIGNSPACE_FILE.designspace ]]`.
-   1. This may give an error connected to your OpenType features, such as `KeyError: ('a.italic', 'SingleSubst[0]', 'Lookup[0]', 'LookupList')`. If it does...
-   2. Use the script `add-feature_code-to-selected_fonts.py` to add blank feature code to all selected UFOs. If you prefer, you can edit the feature code in this script to whatever you want as the actual feature code for your output font. However, feature code is often the source of issues in font builds, so only add feature code when you actually want to start testing feature code.
+
+
+### Troubleshooting
+
+Likely, FontMake will report that there are incompatible glyphs, witha warning like `cu2qu.errors.IncompatibleFontsError: fonts contains incompatible glyphs: 'a.italic', 'd.italic', 'f.italic', 'g', 'g.italic', 'h.italic', 'i.italic', 'n.italic', 'q', 'r', 'u.italic', 'y', 'z.italic'`. This is useful information! Copy the glyph list output from this error.
+
+1. Go back to RoboFont, and run the script `remove-list-of-glyphs.py` (also in this repo).
+2. Paste in the copied list of incompatible glyphs to remove.
+3. A file explorer will open. Find the `varfontprep` folder, and select all UFOs within it. This will remove the glyphs that are incompatible. This is a brute-force way to generate a VF for testing, and this is why we're working with duplicates! Obviously, be sure you aren't selecting the actual sources here, or you will need to dig into your backups.
+
+FontMake may report an error connected to your OpenType features, such as `KeyError: ('a.italic', 'SingleSubst[0]', 'Lookup[0]', 'LookupList')`.
+
+1. Use the script `add-feature_code-to-selected_fonts.py` to add (nearly) blank feature code to all selected UFOs. If you prefer, you can edit the feature code in this script to whatever you want as the actual feature code for your output font. However, feature code is often the source of issues in font builds, so only add feature code when you actually want to start testing feature code.
 
 This is very much a work-in-progress set of techniques, and I will add to it more over time.
 
