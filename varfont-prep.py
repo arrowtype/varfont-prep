@@ -57,9 +57,13 @@ def copyFonts(inputFontPaths, newFolderPath):
     for fontPath in inputFontPaths:
         head, tail = os.path.split(fontPath)
 
-        # copy UFO into newFolderPath
-        # "+ /varprep- +"  was formerly added to path, before tail
-        shutil.copytree(fontPath, newFolderPath + "/" + tail)
+        newPath = newFolderPath + "/" + tail
+
+        if os.path.exists(newPath) == False:
+
+            # copy UFO into newFolderPath
+            # "+ /varprep- +"  was formerly added to path, before tail
+            shutil.copytree(fontPath, newPath)
 
 
 def makeVarFontPrepFolder(inputFontPaths):
