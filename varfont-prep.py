@@ -6,6 +6,8 @@ import shutil
 import datetime
 from fontTools.designspaceLib import BaseDocReader, DesignSpaceDocument
 
+from helpers.removeGlyphs import removeGlyphs
+
 report = """
 Var Prep Report
 ********************************************  
@@ -185,18 +187,62 @@ for fontFile in copiedFonts:
         f.info.familyName + " " + f.info.styleName + ":\n"
 
     print(f.info.familyName + " " + f.info.styleName)
+
+    uncommonGlyphs = []
     for g in f:
         print(g.name)
 
         if g.name not in commonGlyphs:
-            f.removeGlyph(g.name)
+            uncommonGlyphs.append(g.name)
             print(g.name + " removed from " + f.info.styleName)
 
             report += g.name + "; "
 
+    removeGlyphs(f, uncommonGlyphs)
+
     report += "\n \n"
     f.save()
     f.close()
+
+
+# --------------------------------------------------------------------------------------------------------
+# decompose non-exporting glyphs (glyphs with a dot leading in their name, such as ".arrowhead")
+
+def nonExporting(glyphName):
+    if glyphName[0] == ".":
+        return True
+
+
+def findAndDecomposeComponents(font, componentNames):
+    for g in font:
+        if len(g.components) > 0:
+            for component in g.components:
+                if component.baseGlyph in componentNames:
+                    component.decompose()
+
+
+for fontFile in copiedFonts:
+    fullFontPath = newFolderPath + "/" + fontFile
+    f = OpenFont(fullFontPath, showInterface=False)
+
+    nonExportingGlyphs = []
+    for g in f:
+        if nonExporting(g.name) == True:
+            # add to list
+            nonExportingGlyphs.append(g.name)
+
+    findAndDecomposeComponents(f, nonExportingGlyphs)
+
+    removeGlyphs(f, nonExportingGlyphs)
+
+    # for name in nonExportingGlyphs:
+    #     for g in f:
+    #         if len(g.components) > 0:
+    #             for component in g.components:
+    #                 if component.baseGlyph in nonExportingGlyphs:
+    #                     component.decompose()
+
+    report += f"Decomposed and removed non-exporting glyphs: {nonExportingGlyphs}"
 
 
 # decompose all glyphs to keep things compatible
@@ -214,7 +260,6 @@ for fontFile in copiedFonts:
 #     report += "\n \n"
 #     f.save()
 #     f.close()
-
 
 # set up empty list for compatible glyphs
 compatibleGlyphs = ["space"]
@@ -276,15 +321,14 @@ for fontFile in copiedFonts:
     report += "Non-compatible glyphs removed from " + \
         f.info.familyName + " " + f.info.styleName + ":\n"
 
-    for g in f:
-        print(g.name)
+    removeGlyphs(f, nonCompatibleGlyphs)
 
-        if g.name in nonCompatibleGlyphs:
-            f.removeGlyph(g.name)
+    for name in nonCompatibleGlyphs:
+        report += name + ", "
 
-            print(g.name + " removed from " + f.info.styleName)
+    nonCompatibleGlyphNames = (str(name) for name in nonCompatibleGlyphs)
 
-            report += " - " + g.name + "\n"
+    print(", ".join(nonCompatibleGlyphNames) + " ➡️ removed from " + f.info.styleName)
 
     f.save()
 
@@ -323,20 +367,6 @@ for fontFile in copiedFonts:
     f.save()
     f.close()
 
-# decompose components
-# for fontFile in copiedFonts:
-#     fullFontPath = newFolderPath + "/" + fontFile
-#     f = OpenFont(fullFontPath, showInterface=False)
-
-#     report += "******************* \n"
-#     report += "Glyphs decomposes in " + f.info.familyName + " " + f.info.styleName + ":\n"
-
-#     for g in f:
-#         # if glyph has components
-#             # decompose components
-
-#     f.save()
-#     f.close()
 
 #########################################################  ################
 ############# TO DO: sort fonts in the same way ##############
@@ -350,19 +380,6 @@ for fontFile in copiedFonts:
 #########################################################  ################
 ############# TO DO: check anchor compatibility ##############
 ######################################################### ################
-
-
-#########################################################  ################
-############# TO DO?: include designspace file handling? ##############
-######################################################### ################
-
-# allow .designspace file extension to be selected
-
-# if a file is UFO, do the UFO stuff
-# if a file is designspace, move to new folder, with filenames updated to include varfontprep
-    # (if you want to add those to names)
-    # does adding stuff to the filename matter?
-
 
 #########################################
 ############# write report ##############

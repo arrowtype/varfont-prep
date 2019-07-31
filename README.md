@@ -23,6 +23,11 @@ VarFont Prep seeks to make it easy: it checks UFOs for consistency and compatibi
 6. Use [FontMake](https://github.com/googlefonts/fontmake) to generate a variable font: `fontmake -o variable -m [[ PATH/DESIGNSPACE_FILE.designspace ]]`
 
 
+## Tips
+
+You can make non-exporting glyphs by adding a `.` in front of their names. For instance, I have made the glyph `.arrowhead`, which I use in lots of arrow glyphs, but do not want to export into final fonts. So, Var Font Prep finds and decomposes these components, then deletes the `.arrowhead` glyph.
+
+
 ### Troubleshooting
 
 Likely, FontMake will report that there are incompatible glyphs, witha warning like `cu2qu.errors.IncompatibleFontsError: fonts contains incompatible glyphs: 'a.italic', 'd.italic', 'f.italic', 'g', 'g.italic', 'h.italic', 'i.italic', 'n.italic', 'q', 'r', 'u.italic', 'y', 'z.italic'`. This is useful information! Copy the glyph list output from this error.
