@@ -209,7 +209,7 @@ for fontFile in copiedFonts:
 # decompose non-exporting glyphs (glyphs with a dot leading in their name, such as ".arrowhead")
 
 def nonExporting(glyphName):
-    if glyphName[0] == ".":
+    if glyphName[0] == "_":
         return True
 
 
@@ -328,7 +328,7 @@ for fontFile in copiedFonts:
 
     nonCompatibleGlyphNames = (str(name) for name in nonCompatibleGlyphs)
 
-    print(", ".join(nonCompatibleGlyphNames) + " ➡️ removed from " + f.info.styleName)
+    print(", ".join(set(nonCompatibleGlyphNames)) + " ➡️ removed from " + f.info.styleName)
 
     f.save()
 
