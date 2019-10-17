@@ -52,15 +52,7 @@ This is very much a work-in-progress set of techniques, and I will add to it mor
 
 ## Needs
 
-Priority 1
-
-- Do not decompose accents unless the option is specifically requested. Inform the user of the file size repercussions of this.
-- ~~Run from a designspace file rather than selected UFOs~~ Done!
-- ~~Include an updated designspace file in the output~~ Done!
-- fix issue of `/space` deletion
-
-Priority 2
-
+- Refactoring for performance. Currently, this opens and closes font files multiple times, which is wasteful and most likely slows down processing substantially.
 - Probably, run `cu2qu -i` to pre-convert to TTF. This will provide a more-accurate view of what can and cannot convert. 
 - Instead of removing unsupported glyphs, there should be the option to fill them in from the next-closest master. E.G. ExtraBold Italic glyphs could fill in for missing glyphs in Heavy Italic.
   - (how would this detect the next-closest master? with the designspace?)
