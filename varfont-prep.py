@@ -16,7 +16,6 @@ Var Prep Report
 
 now = datetime.datetime.now()
 
-
 def getSourcePathsFromDesignspace():
 
     designspacePath = getFile("select designspace for variable font",
@@ -30,13 +29,20 @@ def getSourcePathsFromDesignspace():
 
     return designspacePath, inputFontPaths
 
+def openFontsInDict(fontPaths):
+    fontsDict = {}
+    for path in fontPaths:
+        f = OpenFont(path, showInterface=False)
+        fontsDict[path] = f
 
-def checkIfSameFamilyName(inputFontPaths):
+    return fontsDict
+
+
+def checkIfSameFamilyName(fontsDict):
     fontFamilyNames = []
     global report
 
-    for fontPath in inputFontPaths:
-        f = OpenFont(fontPath, showInterface=False)
+    for f in fontsDict.values():
         familyName = f.info.familyName
         fontFamilyNames.append(familyName)
 
@@ -55,6 +61,35 @@ def checkIfSameFamilyName(inputFontPaths):
         # return errorMsg
 
 
+
+
+def makeVarFontPrepFolder(fontsDict, designspacePath):
+
+    sameFamily, familyName = checkIfSameFamilyName(fontsDict)
+
+    # # check that selected fonts have same family name
+    if sameFamily == True:
+        # get family name
+        familyName = familyName
+    else:
+        familyName = "ERROR: families have different names"
+
+    # make new folder name with font family name and "varfontprep" label
+    newFolderName = familyName.replace(" ", "_").lower() + "-varfontprep"
+
+    # get head of font path
+    head, tail = os.path.split(designspacePath)
+
+    # make new folder path
+    newFolderPath = head + "/" + newFolderName
+
+    now = datetime.datetime.now()
+    newFolderPath += "-" + now.strftime("%Y_%m_%d-%H_%M_%S")
+    os.mkdir(newFolderPath)
+    print(newFolderPath)
+    return str(newFolderPath)
+
+
 def copyFonts(inputFontPaths, newFolderPath):
     for fontPath in inputFontPaths:
         head, tail = os.path.split(fontPath)
@@ -68,54 +103,11 @@ def copyFonts(inputFontPaths, newFolderPath):
             shutil.copytree(fontPath, newPath)
 
 
-def makeVarFontPrepFolder(inputFontPaths):
-
-    # # check that selected fonts have same family name
-    if checkIfSameFamilyName(inputFontPaths)[0] == True:
-        # get family name
-        familyName = checkIfSameFamilyName(inputFontPaths)[1]
-    else:
-        familyName = "error"
-
-    # make new folder name with font family name and "varfontprep" label
-    newFolderName = familyName.replace(" ", "_").lower() + "-varfontprep"
-
-    # get path of first input font
-    path = inputFontPaths[0]
-
-    # get head of font path
-    head, tail = os.path.split(path)
-
-    # make new folder path
-    newFolderPath = head + "/" + newFolderName
-
-    now = datetime.datetime.now()
-    newFolderPath += "-" + now.strftime("%Y_%m_%d-%H_%M_%S")
-    os.mkdir(newFolderPath)
-    print(newFolderPath)
-    return str(newFolderPath)
-
-    # if font family names are different, print the returned error
-    # else:
-    #     print(checkIfSameFamilyName(inputFontPaths))
-    #     print("sorry, fonts have different family names")
-
-
-def duplicateFontsToFontPrepFolder(inputFontPaths, newFolderPath):
-    # # check that selected fonts have same family name
-    if checkIfSameFamilyName(inputFontPaths)[0] == True:
-        # newFolderPath = makeVarFontPrepFolder(inputFontPaths)
-
-        print(newFolderPath)
-
-        copyFonts(inputFontPaths, newFolderPath)
-    else:
-        print("sorry, fonts have different family names")
-
-
 designspacePath, inputFontPaths = getSourcePathsFromDesignspace()
-newFolderPath = makeVarFontPrepFolder(inputFontPaths)
-duplicateFontsToFontPrepFolder(inputFontPaths, newFolderPath)
+fontsDict = openFontsInDict(inputFontPaths)
+newFolderPath = makeVarFontPrepFolder(fontsDict, designspacePath)
+copyFonts(inputFontPaths, newFolderPath)
+
 
 ###############################################
 ######### copy and update designspace #########
@@ -143,6 +135,9 @@ def copyDesignSpace(designspacePath, newFolderPath):
 copyDesignSpace(designspacePath, newFolderPath)
 
 
+
+
+
 #########################################
 ######### make fonts compatible #########
 #########################################
@@ -150,17 +145,15 @@ copyDesignSpace(designspacePath, newFolderPath)
 glyphLists = []
 
 copiedFonts = []
+
+# get paths
 for file in os.listdir(newFolderPath):
     if os.path.splitext(file)[1] == ".ufo":
         copiedFonts.append(file)
 
 
-# create lists of glyphs in each font
-for fontFile in copiedFonts:
-    print(fontFile)
-    fullFontPath = newFolderPath + "/" + fontFile
-    print(fullFontPath)
-    f = OpenFont(fullFontPath, showInterface=False)
+def addGlyphListToGlyphLists(f):
+
     fontName = f.info.familyName + " " + f.info.styleName
 
     print(fontName)
@@ -172,16 +165,8 @@ for fontFile in copiedFonts:
 
     glyphLists.append(glyphs)
 
-# print(glyphLists)
-
-# create one list of glyphs present in every font
-commonGlyphs = set(glyphLists[0]).intersection(*glyphLists[1:])
-# print(commonGlyphs)
-
-# remove glyphs that aren't present in every font
-for fontFile in copiedFonts:
-    fullFontPath = newFolderPath + "/" + fontFile
-    f = OpenFont(fullFontPath, showInterface=False)
+# should you only remove glyphs ONCE? make list of compatible AND similar glyphs?
+def constrainCharSetToSimilarGlyphs(f, commonGlyphs):
 
     report += "Unique glyphs removed from " + \
         f.info.familyName + " " + f.info.styleName + ":\n"
@@ -201,9 +186,6 @@ for fontFile in copiedFonts:
     removeGlyphs(f, uncommonGlyphs)
 
     report += "\n \n"
-    f.save()
-    f.close()
-
 
 # --------------------------------------------------------------------------------------------------------
 # decompose non-exporting glyphs (glyphs with a dot leading in their name, such as ".arrowhead")
@@ -212,7 +194,6 @@ def nonExporting(glyphName):
     if glyphName[0] == "_":
         return True
 
-
 def findAndDecomposeComponents(font, componentNames):
     for g in font:
         if len(g.components) > 0:
@@ -220,139 +201,24 @@ def findAndDecomposeComponents(font, componentNames):
                 if component.baseGlyph in componentNames:
                     component.decompose()
 
-
-for fontFile in copiedFonts:
-    fullFontPath = newFolderPath + "/" + fontFile
-    f = OpenFont(fullFontPath, showInterface=False)
-
+def decomposeNonExportingComponents(f):
     nonExportingGlyphs = []
+
     for g in f:
         if nonExporting(g.name) == True:
             # add to list
             nonExportingGlyphs.append(g.name)
 
     findAndDecomposeComponents(f, nonExportingGlyphs)
-
     removeGlyphs(f, nonExportingGlyphs)
-
-    # for name in nonExportingGlyphs:
-    #     for g in f:
-    #         if len(g.components) > 0:
-    #             for component in g.components:
-    #                 if component.baseGlyph in nonExportingGlyphs:
-    #                     component.decompose()
 
     report += f"Decomposed and removed non-exporting glyphs: {nonExportingGlyphs}"
 
-
-# decompose all glyphs to keep things compatible
-# TO DO: is this realy needed?
-# for fontFile in copiedFonts:
-#     fullFontPath = newFolderPath + "/" + fontFile
-#     f = OpenFont(fullFontPath, showInterface=False)
-
-#     report += "Glyphs decomposed for " + f.info.familyName + " " + f.info.styleName + ":\n"
-
-#     print(f.info.familyName + " " + f.info.styleName)
-#     for g in f:
-#         g.decompose()
-
-#     report += "\n \n"
-#     f.save()
-#     f.close()
-
-# set up empty list for compatible glyphs
-compatibleGlyphs = ["space"]
-nonCompatibleGlyphs = []
-compatibleGlyphsReport = ""
-nonCompatibleGlyphsReport = ""
-
-compatibilityChecked = False
-
-for fontFile in copiedFonts:
-    print(fontFile)
-    fullFontPath = newFolderPath + "/" + fontFile
-    print(fullFontPath)
-    f = OpenFont(fullFontPath, showInterface=False)
-    fontName = f.info.familyName + " " + f.info.styleName
-
-    # if compatibility has not yet been checked
-    if compatibilityChecked == False:
-        # for g in font1
-        for g in f:
-            # f in all fonts
-            for fontFile in copiedFonts:
-                fullFontPath = newFolderPath + "/" + fontFile
-                checkingFont = OpenFont(fullFontPath, showInterface=False)
-                fontName = f.info.familyName + " " + f.info.styleName
-
-                # test glyphCompatibility
-                glyphCompatibility = g.isCompatible(checkingFont[g.name])
-
-                if glyphCompatibility[0] == True:
-                    compatibleGlyphs.append(g.name)
-                    # compatibleGlyphsReport += g.name + "\n" + str(glyphCompatibility) + "\n"
-                else:
-                    nonCompatibleGlyphs.append(g.name)
-                    nonCompatibleGlyphsReport += g.name + \
-                        "\n" + str(glyphCompatibility) + "\n"
-
-    # set to true to stop unnecessary looping
-    compatibilityChecked = True
-
-report += "\n ******************* \n"
-compatibleGlyphsSet = set(compatibleGlyphs)
-report += "compatibleGlyphs are " + str(compatibleGlyphsSet)
-
-# report += "\n ******************* \n"
-# report += "compatible glyphs: \n"
-# report += compatibleGlyphsReport
-
-report += "\n ******************* \n"
-report += "non-compatible glyphs: \n"
-report += nonCompatibleGlyphsReport
-
-# remove glyphs that aren't compatible in every font
-for fontFile in copiedFonts:
-    fullFontPath = newFolderPath + "/" + fontFile
-    f = OpenFont(fullFontPath, showInterface=False)
-
-    report += "\n ******************* \n"
-    report += "Non-compatible glyphs removed from " + \
-        f.info.familyName + " " + f.info.styleName + ":\n"
-
-    removeGlyphs(f, nonCompatibleGlyphs)
-
-    for name in nonCompatibleGlyphs:
-        report += name + ", "
-
-    nonCompatibleGlyphNames = (str(name) for name in nonCompatibleGlyphs)
-
-    print(", ".join(set(nonCompatibleGlyphNames)) + " ➡️ removed from " + f.info.styleName)
-
-    f.save()
-
-    for g in f.templateKeys():
-        f.removeGlyph(g)
-
-    f.save()
-
-    if 'space' not in f.keys():
-        f.newGlyph('space')
-        f['space'].unicode = '0020'
-        f['space'].width = 600
-
-    if f['space'].width == 0:
-        f['space'].width = 600
-
-    f.save()
-    f.close()
-
+# --------------------------------------------------------------------------------------------------------
 # remove guides
-for fontFile in copiedFonts:
-    fullFontPath = newFolderPath + "/" + fontFile
-    f = OpenFont(fullFontPath, showInterface=False)
 
+
+def removeGuides(f):
     report += "******************* \n"
     report += "Guides removed from " + \
         f.info.familyName + " " + f.info.styleName + ":\n"
@@ -364,6 +230,77 @@ for fontFile in copiedFonts:
 
     report += "\n \n"
 
+    f.save()
+    f.close()
+
+# --------------------------------------------------------------------------------------------------------
+# compatiblity checks
+
+def findCompatibleGlyphs(fontsDict):
+    nonCompatibleGlyphs = []
+    nonCompatibleGlyphsReport = ""
+    
+    for g in fontsDict.values()[0]:
+        # f in all fonts
+        for checkingFont in fontsDict.values():
+            # test glyphCompatibility
+            glyphCompatibility = g.isCompatible(checkingFont[g.name])
+
+            if glyphCompatibility[0] != True:
+                nonCompatibleGlyphs.append(g.name)
+                nonCompatibleGlyphsReport += g.name + \
+                    "\n" + str(glyphCompatibility) + "\n"
+
+    report += "\n ******************* \n"
+    report += "non-compatible glyphs removed: \n"
+    report += nonCompatibleGlyphsReport
+
+    return nonCompatibleGlyphs
+
+# remove glyphs that aren't compatible in every font
+def removeNonCompatibleGlyphs(f, nonCompatibleGlyphs):
+
+    removeGlyphs(f, nonCompatibleGlyphs)
+
+    for g in f.templateKeys():
+        f.removeGlyph(g)
+
+    if 'space' not in f.keys():
+        f.newGlyph('space')
+        f['space'].unicode = '0020'
+        f['space'].width = 600
+
+    if f['space'].width == 0:
+        f['space'].width = 600
+
+
+# --------------------------------------------------------------------------------------------------------
+# FIX FILES
+
+# in first pass, decompose nonExporting glyphs, remove guides, and find common glyphs
+for f in fontsDict.values():
+    # decompose non-exporting glyphs
+    decomposeNonExportingComponents(f)
+    # remove guides
+    removeGuides(f)
+
+# in second pass, remove glyphs that aren't present in every font
+for f in fontsDict.values():
+    # create lists of glyphs in each font
+    addGlyphListToGlyphLists(fontFile)
+    # create one list of glyphs present in every font
+    commonGlyphs = set(glyphLists[0]).intersection(*glyphLists[1:])
+
+    constrainCharSetToSimilarGlyphs(f, commonGlyphs)
+
+# find compatible glyphs
+nonCompatibleGlyphs = findCompatibleGlyphs(fontsDict)
+
+# remove nonCompatibleGlyphs from each font
+for f in fontsDict.values():
+    removeNonCompatibleGlyphs(f, nonCompatibleGlyphs)
+
+for f in fontsDict.values():
     f.save()
     f.close()
 
