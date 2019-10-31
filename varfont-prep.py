@@ -5,8 +5,12 @@ import os
 import shutil
 import datetime
 from fontTools.designspaceLib import BaseDocReader, DesignSpaceDocument
-
+from mojo.UI import OutputWindow
 from helpers.removeGlyphs import removeGlyphs
+
+
+OutputWindow().show()
+OutputWindow().clear()
 
 report = """
 Var Prep Report
@@ -19,7 +23,7 @@ now = datetime.datetime.now()
 def getSourcePathsFromDesignspace():
 
     designspacePath = getFile("select designspace for variable font",
-                              allowsMultipleSelection=True, fileTypes=["designspace"])[0]
+                              allowsMultipleSelection=False, fileTypes=["designspace"])[0]
 
     designspace = DesignSpaceDocument.fromfile(designspacePath)
 
@@ -29,7 +33,7 @@ def getSourcePathsFromDesignspace():
 
     return designspacePath, inputFontPaths
 
-def openFontsInDict(fontPaths):
+def openFontsInList(fontPaths):
     fontsList = []
     for path in fontPaths:
         f = OpenFont(path, showInterface=False)
@@ -103,7 +107,7 @@ def copyFonts(inputFontPaths, newFolderPath):
 
 designspacePath, inputFontPaths = getSourcePathsFromDesignspace()
 
-inputFontsList = openFontsInDict(inputFontPaths)
+inputFontsList = openFontsInList(inputFontPaths)
 
 newFolderPath = makeVarFontPrepFolder(inputFontsList, designspacePath)
 copyFonts(inputFontPaths, newFolderPath)
@@ -121,7 +125,7 @@ for fontPath in inputFontPaths:
     copiedFontPaths.append(newPath)
     print(newPath)
 
-fontsList = openFontsInDict(copiedFontPaths)
+fontsList = openFontsInList(copiedFontPaths)
 
 print(fontsList)
 
@@ -168,10 +172,9 @@ for file in os.listdir(newFolderPath):
     if os.path.splitext(file)[1] == ".ufo":
         copiedFonts.append(file)
 
+listOfGlyphsLists = []
 
 def addGlyphListToGlyphLists(f):
-
-    glyphLists = []
 
     fontName = f.info.familyName + " " + f.info.styleName
 
@@ -182,9 +185,7 @@ def addGlyphListToGlyphLists(f):
     for g in f:
         glyphs.append(g.name)
 
-    glyphLists.append(glyphs)
-
-    return glyphLists
+    listOfGlyphsLists.append(glyphs)
 
 # should you only remove glyphs ONCE? make list of compatible AND similar glyphs?
 def constrainCharSetToSimilarGlyphs(f, commonGlyphs):
@@ -199,18 +200,27 @@ def constrainCharSetToSimilarGlyphs(f, commonGlyphs):
 
     diff = set(f.keys()) - set(commonGlyphs)
 
+    print('diff of font keys vs commonGlyphs')
+    # print(list(diff).sort())
     print(diff)
 
     uncommonGlyphs = []
     for g in f:
         if g.name not in commonGlyphs:
             uncommonGlyphs.append(g.name)
-            print(g.name + " removed from " + f.info.styleName)
+            # print(g.name + " removed from " + f.info.styleName)
 
-            report += g.name + "; "
+            report += g.name + ", "
 
-    print("removing uncommon glyphs")
+    print("removing uncommon glyphs from ", f.info.styleName)
+    # print(list(uncommonGlyphs).sort())
     print(uncommonGlyphs)
+
+    diffDiffs = set(diff) - set(uncommonGlyphs)
+
+    print("\n--------------------------")
+    print('diff of diffs?')
+    print(diffDiffs)
 
     removeGlyphs(f, uncommonGlyphs)
 
@@ -279,6 +289,7 @@ def findCompatibleGlyphs(fontsList):
                 glyphCompatibility = g.isCompatible(checkingFont[g.name])
 
                 if glyphCompatibility[0] != True:
+                    print(glyphCompatibility[0])
                     nonCompatibleGlyphs.append(g.name)
                     nonCompatibleGlyphsReport += g.name + \
                         "\n" + str(glyphCompatibility) + "\n"
@@ -328,14 +339,23 @@ for f in fontsList:
 # in second pass, remove glyphs that aren't present in every font
 print("\n---------------------------------------------------\n")
 print("second pass: remove glyphs that aren't present in every font")
+
 for f in fontsList:
     # create lists of glyphs in each font
-    glyphLists = addGlyphListToGlyphLists(f)
-    # create one list of glyphs present in every font
-    commonGlyphs = set(glyphLists[0]).intersection(*glyphLists[1:])
+    addGlyphListToGlyphLists(f)
 
-    print(commonGlyphs)
+# print("\n---------------------------------------------------\n")
+# print("listOfGlyphsLists")
+# print(listOfGlyphsLists)
 
+# create one list of glyphs present in every font
+commonGlyphs = set(listOfGlyphsLists[0]).intersection(*listOfGlyphsLists[1:])
+# commonGlyphs = set(fontsList[0].keys()).intersection(*fontsList[1:].keys())
+
+print("commonGlyphs")
+print(commonGlyphs)
+
+for f in fontsList:
     constrainCharSetToSimilarGlyphs(f, commonGlyphs)
 
 
@@ -346,24 +366,65 @@ nonCompatibleGlyphs = findCompatibleGlyphs(fontsList)
 for f in fontsList:
     removeNonCompatibleGlyphs(f, nonCompatibleGlyphs)
 
+
+# --------------------------------------------------------------------------------------------------------
+# kerning compatibility
+
+# check if there is kerning in any of the UFOs
+kerningInFonts = False
+
+for f in fontsList:
+    if len(f.kerning) > 0:
+        kerningInFonts = True
+
+# if there is kerning in some UFOs, check others and add blank kerning if needed
+if kerningInFonts:
+    report += "\n ******************* \n"
+    for f in fontsList:
+        if len(f.kerning) == 0:
+            f.kerning[("A", "A")] = 0
+
+            print("adding blank kerning to ", f.info.styleName)
+            report += f"Adding blank kerning to {f.info.styleName}\n"
+
+    report += "\n ******************* \n"
+
+
+# --------------------------------------------------------------------------------------------------------
+# sort fonts
+
+print("\nsorting fonts\n")
+
+def sortFont(font):
+    # the new default is at the end, so this will re-apply a "smart sort" to the font
+    newGlyphOrder = font.naked().unicodeData.sortGlyphNames(font.glyphOrder, sortDescriptors=[dict(type="cannedDesign", ascending=True, allowPseudoUnicode=True)])
+    font.glyphOrder = newGlyphOrder
+
+for f in fontsList:
+    sortFont(f)
+
+
+# --------------------------------------------------------------------------------------------------------
+# close fonts
+
 for f in fontsList:
     f.save()
     f.close()
 
 
-#########################################################  ################
-############# TO DO: sort fonts in the same way ##############
-######################################################### ################
-
-#########################################################  ################
-############# TO DO?: check kerning compatibility ##############
-# check that kerning exists in every UFO. If it doesn't, add blank kerning.
-######################################################### ################
 
 
-#########################################################  ################
-############# TO DO: check anchor compatibility ? ##############
-######################################################### ################
+#########################################################################
+############# TO DO: present vanilla.ProgressBar ########################
+#########################################################################
+
+#########################################################################
+############# TO DO: sort fonts in the same way #########################
+#########################################################################
+
+#########################################################################
+############# TO DO: check anchor compatibility ? #######################
+#########################################################################
 
 #########################################
 ############# write report ##############

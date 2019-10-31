@@ -10,8 +10,8 @@ def removeGlyphs(f, glyphsToRemove):
         # if glyphToRemove in f.keys():
         if glyphName in f:
             del f[glyphName]
-        else:
-            print("font does not contain a glyph named '%s'" % glyphName)
+        # else:
+        #     print("font does not contain a glyph named '%s'" % glyphName)
 
     # GLYPH ORDER ---------------------------------------------
 
