@@ -1,10 +1,12 @@
+![varfont-prep repo artwork](assets/varfont-prep-repo_artwork.png)
+
 # VarFont Prep
 
 This is a work-in-progress script to prep UFOs for the generation of a variable font ("VF").
 
-![](readme.gif)
-
 A current challenge in making variable fonts from UFOs is that FontMake & FontTools expect all input font masters to be almost perfectly in-sync, without any different or incompatible glyphs. If you have any incompatibility – whether in glyphs, character sets, or even guides, the build will fail. During a design project, this kind of synchrony between several masters is nearly impossible, and certainly a counterproductive thing to focus on (because it prevents rapid exploration within masters).
+
+![](assets/readme.gif)
 
 VarFont Prep seeks to make it easy: it checks UFOs for consistency and compatibility, then outputs new, build-ready UFOs which exclude all non-compatible glyphs. It also outputs a text report to make clear what glyphs were deleted. This is a slightly brute-force approach to the problem, but it allows the type design process to be organic (and therefore productive): exploration can be done on alternate glyphs within each master, without worries about making compatible alternate characters in every other master of the font project. The variable font can be prototyped and tested along the way, with fallback fonts used in proofs where useful. The variable font may have flaws – and that's a good thing! During a design process, *testable* is better than perfect.
 
