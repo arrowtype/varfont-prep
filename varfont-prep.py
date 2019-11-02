@@ -6,11 +6,17 @@ import shutil
 import datetime
 from fontTools.designspaceLib import BaseDocReader, DesignSpaceDocument
 from mojo.UI import OutputWindow
-from helpers.removeGlyphs import removeGlyphs
-
+import helpers
+from helpers.removeGlyphs import *
 
 OutputWindow().show()
 OutputWindow().clear()
+
+debug = True
+
+if debug == True:
+    import importlib
+    importlib.reload(helpers.removeGlyphs)
 
 report = """
 Var Prep Report
