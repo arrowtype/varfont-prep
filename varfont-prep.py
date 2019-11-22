@@ -1,5 +1,7 @@
 # varfont prep
 
+
+
 from vanilla.dialogs import *
 import os
 import shutil
@@ -9,14 +11,17 @@ from mojo.UI import OutputWindow
 import helpers
 from helpers.removeGlyphs import *
 
-OutputWindow().show()
-OutputWindow().clear()
 
 debug = True
 
 if debug == True:
     import importlib
     importlib.reload(helpers.removeGlyphs)
+    from helpers.removeGlyphs import *
+
+
+OutputWindow().show()
+OutputWindow().clear()
 
 report = """
 Var Prep Report
