@@ -227,7 +227,7 @@ def constrainCharSetToSimilarGlyphs(f, commonGlyphs):
     report += "\n \n"
 
 # --------------------------------------------------------------------------------------------------------
-# decompose non-exporting glyphs (glyphs with a dot leading in their name, such as ".arrowhead")
+# decompose non-exporting glyphs (glyphs with a underscore leading in their name, such as "_arrowhead")
 
 def nonExporting(glyphName):
     if glyphName[0] == "_":
