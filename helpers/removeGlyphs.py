@@ -10,8 +10,20 @@ def removeGlyphs(f, glyphsToRemove):
         # if glyphToRemove in f.keys():
         if glyphName in f:
             del f[glyphName]
-        # else:
-        #     print("font does not contain a glyph named '%s'" % glyphName)
+        else:
+            print("font does not contain a glyph named '%s'" % glyphName)
+
+    # LAYERS --------------------------------------------------
+
+    for layerName in f.layerOrder:
+        layer = f.getLayer(layerName)
+        for glyphToRemove in glyphsToRemove:
+            if glyphToRemove in layer:
+                del layer[glyphToRemove]
+            # else:
+            #     print("%s does not contain a glyph named '%s'" %
+            #           (layerName, glyphToRemove))
+
 
     # GLYPH ORDER ---------------------------------------------
 
