@@ -27,7 +27,7 @@ VarFont Prep seeks to make it easy: it checks UFOs for consistency and compatibi
 
 ## Tips
 
-You can make non-exporting glyphs by adding a `.` in front of their names. For instance, I have made the glyph `.arrowhead`, which I use in lots of arrow glyphs, but do not want to export into final fonts. So, Var Font Prep finds and decomposes these components, then deletes the `.arrowhead` glyph.
+You can make non-exporting glyphs by adding a `_` in front of their names. For instance, I have made the glyph `_arrowhead`, which I use in lots of arrow glyphs, but do not want to export into final fonts. So, Var Font Prep finds and decomposes these components, then deletes the `_arrowhead` glyph.
 
 
 ### Troubleshooting
