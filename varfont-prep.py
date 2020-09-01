@@ -256,6 +256,7 @@ def decomposeNonExportingComponents(f):
     nonExportingGlyphs = []
 
     for g in f:
+        print("\t",g.name)
         if nonExporting(g.name) == True:
             # add to list
             nonExportingGlyphs.append(g.name)
@@ -295,6 +296,7 @@ def findCompatibleGlyphs(fontsList):
         # print(g.name)
         # f in all fonts
         for checkingFont in fontsList:
+            print(checkingFont.path)
             # test glyphCompatibility
             if g.name in checkingFont.keys():
                 glyphCompatibility = g.isCompatible(checkingFont[g.name])
@@ -339,6 +341,7 @@ def removeNonCompatibleGlyphs(f, nonCompatibleGlyphs):
 print("\n---------------------------------------------------\n")
 print("first pass: decompose nonExporting glyphs, remove guides, and find common glyphs")
 for f in fontsList:
+    print(f.info.styleName)
     # decompose non-exporting glyphs
     decomposeNonExportingComponents(f)
     # remove guides
